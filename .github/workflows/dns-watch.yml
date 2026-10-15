@@ -1,0 +1,42 @@
+name: NextDNS WhatsApp Watch
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Restore last checked timestamp
+        uses: actions/cache/restore@v4
+        with:
+          path: .last_checked_ts.txt
+          key: dns-watch-state-${{ github.run_id }}
+          restore-keys: |
+            dns-watch-state-
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run DNS monitor
+        run: python dns_watch_single_run.py
+        env:
+          NEXTDNS_API_KEY: ${{ secrets.NEXTDNS_API_KEY }}
+          NEXTDNS_PROFILE_ID: ${{ secrets.NEXTDNS_PROFILE_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+      - name: Save latest timestamp for next run
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: .last_checked_ts.txt
+          key: dns-watch-state-${{ github.run_id }}
