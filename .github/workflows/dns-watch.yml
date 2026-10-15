@@ -3,6 +3,10 @@ name: NextDNS WhatsApp Watch
 on:
   workflow_dispatch:
 
+concurrency:
+  group: dns-watch-runner
+  cancel-in-progress: false
+
 jobs:
   check:
     runs-on: ubuntu-latest
